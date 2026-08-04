@@ -1,0 +1,53 @@
+name: Artifacts
+on: 
+  push:
+    branches: [main, 'release/**']
+    paths:
+      - '.github/workflows/artifacts.yml'
+      - 'src/**'
+      - '!**/*.md'
+  workflow_dispatch:
+jobs:
+    build:
+        name: Build and upload artifacts
+        runs-on: ubuntu-latest
+        outputs:
+            version: ${{ steps.v.outputs.value }}
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+            - run: mkdir -p dist
+            - run: date -u -Iseconds > dist/report.txt
+            - id: v
+              run: |
+                VERSION="v0.1.${{ github.run_number }}"
+                echo "$VERSION" > dist/version.txt
+                echo "value=$VERSION" >> "$GITHUB_OUTPUT"
+            - name: Upload artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                name: build-artifacts
+                path: dist
+                if-no-files-found: error
+                retention-days: 7
+    verify:
+        name: verify-artifacts
+        runs-on: ubuntu-latest
+        needs: build
+        steps:
+            - name: Download artifacts
+              uses: actions/download-artifact@v4
+              with:
+                name: build-artifacts
+                path: dist
+            - run: cat dist/report.txt
+            - run: cat dist/version.txt
+            - name: Verify-artifacts-content
+              env:
+                EXPECTED_VERSION: ${{ needs.build.outputs.version }}
+              run: |
+                    VERSION=$(cat dist/version.txt)
+                    if [ "$VERSION" != "$EXPECTED_VERSION" ]; then
+                        echo "mismatch"    
+                        exit 1
+                    fi
