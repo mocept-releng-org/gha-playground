@@ -1,0 +1,11 @@
+{
+  "name": "gha-playground",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "test": "node -e \"console.log('tests ok')\""
+  },
+  "devDependencies": {
+    "chalk": "^5.3.0"
+  }
+}
