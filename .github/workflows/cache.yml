@@ -1,0 +1,55 @@
+name: Cache
+on:
+  push:
+    branches: [main, 'release/**']
+    paths:
+      - '.github/workflows/cache.yml'
+      - 'src/**'
+      - '!**/*.md'
+  workflow_dispatch:
+jobs:
+  with-builtin:
+    name: with built-in
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+           npm-${{ runner.os }}-
+      - name: Install dependencies
+        run: npm ci
+      - name: Run tests
+        run: npm test
+  with-raw:
+    name: with raw
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Cache dependencies
+        id: cache-npm
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            npm-${{ runner.os }}-
+      - name: Install dependencies
+        run: npm ci
+      - name: Run tests
+        run: npm test
+      - name: Cache summary
+        run: echo "cache hit? ${{ steps.cache-npm.outputs.cache-hit }}"
