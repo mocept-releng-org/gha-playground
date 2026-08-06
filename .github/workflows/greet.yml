@@ -22,4 +22,5 @@ jobs:
       - name: Print greeting
         env:
           GREETING: ${{ steps.hello.outputs.greeting }}
-        run: echo "Greeting: $GREETING"
+        run: |
+          echo "Greeting: $GREETING"
