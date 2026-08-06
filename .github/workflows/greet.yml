@@ -1,0 +1,25 @@
+name: Greet
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        description: 'Name of the person to greet'
+        type: string
+        default: 'Ahold'
+
+jobs:
+  greet:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - id: hello
+        uses: ./.github/actions/say-hello
+        with:
+          who: ${{ inputs.name }}
+          shout: 'true'
+          emoji: '🚀'
+      - name: Print greeting
+        env:
+          GREETING: ${{ steps.hello.outputs.greeting }}
+        run: echo "Greeting: $GREETING"

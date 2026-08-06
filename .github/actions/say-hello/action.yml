@@ -1,0 +1,57 @@
+name: 'Say Hello'
+description: 'A composite action that greets with optional shouting'
+
+inputs:
+  who: 
+    description: 'The person to greet'
+    required: true
+    default: 'World'
+  shout:
+    description: 'Whether to shout the greeting'
+    required: false
+    default: 'false'
+  emoji:
+    description: 'An optional emoji to include in the greeting'
+    required: false
+    default: '👋'
+
+outputs:
+  greeting:
+    description: 'The greeting message'
+    value: ${{ steps.build.outputs.greeting }}
+
+runs:
+  using: 'composite'
+  steps:
+    - id: build
+      shell: bash
+      env:
+        WHO: ${{ inputs.who }}
+        SHOUT: ${{ inputs.shout }}
+        EMOJI: ${{ inputs.emoji }}
+      run: |
+        MSG="${EMOJI} Hello, ${WHO}!"
+        if [ "${SHOUT}" = "true" ]; then
+          MSG=$(echo "$MSG" | tr '[:lower:]' '[:upper:]')
+        fi
+        echo "$MSG"
+        echo "greeting=$MSG" >> "$GITHUB_OUTPUT"
+    - name: Write step summary
+      shell: bash
+      env:
+        GREETING: ${{ steps.build.outputs.greeting }}
+        WHO: ${{ inputs.who }}
+      run: |
+       {
+         echo "## Greeted ${WHO}"
+         echo ""
+         echo "```"
+         echo "$GREETING"
+         echo "```"
+       } >> "$GITHUB_STEP_SUMMARY"
+    - name: Print greeting to console
+      shell: bash
+      env:
+        GREETING: ${{ steps.build.outputs.greeting }}
+      run: |
+        echo "Greeting: $GREETING"
