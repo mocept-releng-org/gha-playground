@@ -1,0 +1,53 @@
+name: promote
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to promote'
+        required: true
+        type: string
+jobs:
+    deploy-dev:
+        name: Deploy to dev
+        uses: ./.github/workflows/reusable-deploy.yml
+        with:
+            environment: dev
+            version: ${{ inputs.version }}
+            dry-run: false
+        secrets:
+            DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN_DEV }}
+    deploy-stg:
+        name: Deploy to staging
+        needs: deploy-dev
+        uses: ./.github/workflows/reusable-deploy.yml
+        with:
+            environment: staging
+            version: ${{ inputs.version }}
+            dry-run: false
+        secrets:
+            DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN_STG }}
+    deploy-prd:
+        name: Deploy to production
+        needs: deploy-stg
+        uses: ./.github/workflows/reusable-deploy.yml
+        with:
+            environment: production
+            version: ${{ inputs.version }}
+            dry-run: false
+        secrets:
+            DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN_PRD }}
+    report:
+        name: Report deployment
+        needs: [deploy-dev, deploy-stg, deploy-prd]
+        runs-on: ubuntu-latest
+        steps:
+            - name: Print deployment report 
+              env:
+                DEV_URL: ${{ needs.deploy-dev.outputs.url }}
+                STG_URL: ${{ needs.deploy-stg.outputs.url }}
+                PRD_URL: ${{ needs.deploy-prd.outputs.url }}
+              run: |
+                echo "Deployment report:"
+                echo "Dev URL: $DEV_URL"
+                echo "Staging URL: $STG_URL"
+                echo "Production URL: $PRD_URL"

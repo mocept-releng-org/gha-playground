@@ -1,0 +1,47 @@
+name: Reusable Deploy
+on: 
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      version:
+        required: true
+        type: string
+      dry-run:
+        default: true
+        type: boolean
+    secrets:
+      DEPLOY_TOKEN:
+        required: true
+        description: 'Token used for deployment'
+    outputs:
+      url:
+        description: 'The URL of the deployed environment'
+        value: ${{ jobs.deploy.outputs.url }}
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy to ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    environment: 
+        name: ${{ inputs.environment }}
+        url: https://${{ inputs.environment }}.example.com/${{ inputs.version }}
+    outputs:
+        url: ${{ steps.deploy.outputs.url }}
+    steps:
+        - id: deploy
+          env:
+            TOKEN: ${{ secrets.DEPLOY_TOKEN }}
+            ENV: ${{ inputs.environment }}
+            VER: ${{ inputs.version }}
+            DRY: ${{ inputs.dry-run }}
+          run: |
+            [ -n "${TOKEN}" ] && echo "token present"
+            echo "Deploying version $VER to environment $ENV (dry-run=$DRY)"
+            echo "url=https://${ENV}.example.com/${VER}" >> "$GITHUB_OUTPUT"
+            if [ "$DRY" != "true" ]; then
+              echo "Deploying for real..."
+            fi
