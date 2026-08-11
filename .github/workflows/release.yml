@@ -24,7 +24,7 @@ jobs:
             new-version: ${{ steps.bump-version.outputs.new-version }}
         steps:
             - name: Checkout repository
-              uses: actions/checkout@4
+              uses: actions/checkout@v4
             - name: Bump version
               id: bump-version
               uses: ./.github/actions/bump-version
