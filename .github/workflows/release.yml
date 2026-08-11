@@ -3,7 +3,7 @@ on:
     workflow_dispatch:
         inputs:
             current-version:
-                description: 'Version to release'
+                description: 'Current version of the project'
                 required: true
                 type: string
                 default: 'v0.1.0'
