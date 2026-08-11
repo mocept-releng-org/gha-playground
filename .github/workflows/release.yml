@@ -1,0 +1,37 @@
+name: Release
+on:
+    workflow_dispatch:
+        inputs:
+            current-version:
+                description: 'Version to release'
+                required: true
+                type: string
+                default: 'v0.1.0'
+            bump:
+                description: 'Type of version bump (major, minor, patch)'
+                required: true
+                type: choice
+                options:
+                    - major
+                    - minor
+                    - patch
+                default: patch
+jobs:
+    release:
+        name: Release
+        runs-on: ubuntu-latest
+        outputs:
+            new-version: ${{ steps.bump-version.outputs.new-version }}
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@4
+            - name: Bump version
+              id: bump-version
+              uses: ./.github/actions/bump-version
+              with:
+                  current-version: ${{ inputs.current-version }}
+                  bump: ${{ inputs.bump }} 
+            - name: Echo new version
+              env:
+                  NEW_VERSION: ${{ steps.bump-version.outputs.new-version }}
+              run: echo "New version $NEW_VERSION"

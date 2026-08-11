@@ -4,3 +4,6 @@ dist/
 *.log
 .env
 .env.*
+# Allow dist/ inside custom actions (must be committed for the runner)
+!.github/actions/*/dist/
+!.github/actions/*/dist/**

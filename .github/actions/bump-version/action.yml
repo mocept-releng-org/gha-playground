@@ -1,0 +1,19 @@
+name: Bump Version
+description: A GitHub Action to bump the version of your project
+author: Mocept Team
+inputs:
+  current-version:
+    description: 'The current version of the project'
+    required: false
+    default: ''
+  bump:
+    description: 'The type of version bump (major, minor, patch)'
+    required: true
+outputs:
+  new-version:
+    description: 'The new version after bumping'
+  previous-version:
+    description: 'The previous version before bumping'
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
