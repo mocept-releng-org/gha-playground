@@ -1,11 +1,21 @@
 {
   "name": "gha-playground",
-  "version": "0.1.0",
+  "version": "0.0.0",
   "private": true,
+  "description": "Ahold ramp-up: GitHub Actions playground and custom actions monorepo",
   "scripts": {
-    "test": "node -e \"console.log('tests ok')\""
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck"
   },
   "devDependencies": {
-    "chalk": "^5.3.0"
-  }
+    "@types/node": "^20.14.0",
+    "@vercel/ncc": "^0.38.1",
+    "typescript": "^5.5.0",
+    "vitest": "^2.0.0"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "pnpm@10.12.1"
 }
