@@ -1,0 +1,37 @@
+name: 'Publish Artifact'
+description: 'Upload a build artifact with retries, error classification, and a step summary'
+author: 'Mocept Team'
+
+inputs:
+  name:
+    description: 'Artifact name (must be unique within a run)'
+    required: true
+  path:
+    description: 'File, directory, or glob to upload (relative to $GITHUB_WORKSPACE)'
+    required: true
+  retention-days:
+    description: 'Days to retain the artifact (1-90; 0 uses org default)'
+    required: false
+    default: '7'
+  if-no-files-found:
+    description: 'warn | error | ignore'
+    required: false
+    default: 'warn'
+  max-attempts:
+    description: 'Maximum upload attempts before giving up'
+    required: false
+    default: '3'
+
+outputs:
+  artifact-id:
+    description: 'Numeric ID of the uploaded artifact'
+  artifact-url:
+    description: 'Download URL for the artifact'
+  size:
+    description: 'Size in bytes'
+  attempts:
+    description: 'Number of attempts required (1 if no retries)'
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
