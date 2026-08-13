@@ -1,0 +1,102 @@
+name: Tag Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      current-version:
+        description: 'Current version to bump from'
+        required: true
+        type: string
+        default: 'v0.1.0'
+      bump:
+        description: 'Version bump type'
+        required: true
+        type: choice
+        default: patch
+        options:
+          - patch
+          - minor
+          - major
+
+jobs:
+  release:
+    name: Tag Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      new-version: ${{ steps.bump.outputs.new-version }}
+      artifact-url: ${{ steps.publish.outputs.artifact-url }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Bump version
+        id: bump
+        uses: ./.github/actions/bump-version
+        with:
+          current-version: ${{ inputs.current-version }}
+          bump: ${{ inputs.bump }}
+
+      - name: Build release notes
+        env:
+          NEW_VERSION: ${{ steps.bump.outputs.new-version }}
+          PREV_VERSION: ${{ steps.bump.outputs.previous-version }}
+          BUMP_TYPE: ${{ inputs.bump }}
+          COMMIT_SHA: ${{ github.sha }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          mkdir -p release
+          {
+            printf 'Release: %s\n' "$NEW_VERSION"
+            printf 'Previous: %s\n' "$PREV_VERSION"
+            printf 'Bump: %s\n' "$BUMP_TYPE"
+            printf 'Commit: %s\n' "$COMMIT_SHA"
+            printf 'Actor: %s\n' "$ACTOR"
+            printf 'Date: %s\n' "$(date -u +%FT%TZ)"
+          } > release/notes.txt
+          cat release/notes.txt
+
+      - name: Publish release notes artifact
+        id: publish
+        uses: ./.github/actions/publish-artifact
+        with:
+          name: release-notes-${{ steps.bump.outputs.new-version }}
+          path: release/**
+          retention-days: '30'
+          if-no-files-found: error
+          max-attempts: '3'
+
+      - name: Configure git identity
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+      - name: Create and push tags
+        env:
+          NEW_VERSION: ${{ steps.bump.outputs.new-version }}
+        run: |
+          MAJOR="${NEW_VERSION%%.*}"
+          echo "New tag: $NEW_VERSION"
+          echo "Moving major tag: $MAJOR"
+
+          git tag -a "$NEW_VERSION" -m "Release $NEW_VERSION"
+          git tag -f "$MAJOR" "$NEW_VERSION"
+
+          git push origin "refs/tags/$NEW_VERSION"
+          git push --force origin "refs/tags/$MAJOR"
+
+      - name: Summary
+        env:
+          NEW_VERSION: ${{ steps.bump.outputs.new-version }}
+          ARTIFACT_URL: ${{ steps.publish.outputs.artifact-url }}
+        run: |
+          {
+            echo "## Tag Release"
+            echo ""
+            echo "- Tag: **$NEW_VERSION**"
+            echo "- Major moving tag: **${NEW_VERSION%%.*}**"
+            echo "- Artifact: $ARTIFACT_URL"
+          } >> "$GITHUB_STEP_SUMMARY"
