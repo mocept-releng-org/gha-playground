@@ -15,7 +15,7 @@ jobs:
             version: ${{ steps.v.outputs.value }}
         steps:
             - name: Checkout repository
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7
             - run: mkdir -p dist
             - run: date -u -Iseconds > dist/report.txt
             - id: v
