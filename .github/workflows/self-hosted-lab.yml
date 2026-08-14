@@ -1,0 +1,28 @@
+name: Self-Hosted Lab
+
+on:
+  workflow_dispatch:
+
+jobs:
+  where-am-i:
+    runs-on: [self-hosted, laptop]
+    steps:
+      - name: Print environment
+        run: |
+          echo "hostname: $(hostname)"
+          echo "user: $(whoami)"
+          echo "pwd: $PWD"
+          echo "OS: $(uname -a)"
+          echo "runner name: $RUNNER_NAME"
+          echo "runner OS: $RUNNER_OS"
+          echo "runner arch: $RUNNER_ARCH"
+      - name: Show tooling
+        run: |
+          which git
+          git --version
+          which node || echo "no node"
+          node --version || true
+      - name: Show workspace
+        run: |
+          ls -la
+          echo "workspace path: $GITHUB_WORKSPACE"
