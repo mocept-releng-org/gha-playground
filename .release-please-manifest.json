@@ -1,0 +1,4 @@
+{
+  ".github/actions/bump-version": "1.0.0",
+  ".github/actions/publish-artifact": "1.0.0"
+}

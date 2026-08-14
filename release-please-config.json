@@ -1,0 +1,14 @@
+{
+  "packages": {
+    ".github/actions/bump-version": {
+      "release-type": "node",
+      "package-name": "@mocept/bump-version"
+    },
+    ".github/actions/publish-artifact": {
+      "release-type": "node",
+      "package-name": "@mocept/publish-artifact"
+    }
+  },
+  "separate-pull-requests": false,
+  "include-component-in-tag": true
+}
