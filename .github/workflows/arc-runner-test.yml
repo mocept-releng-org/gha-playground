@@ -1,0 +1,53 @@
+name: ARC Runner Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      sleep_seconds:
+        description: "Sleep to prove the pod stays up mid-job"
+        type: string
+        default: "10"
+
+# Day 9 lab: prove that jobs targeting the ARC scale set 'arc-runner-set'
+# cause an EphemeralRunner pod to spawn in the arc-runners namespace,
+# run this job, and terminate.
+#
+# Watch it in real time (in another terminal):
+#   kubectl -n arc-runners get pods -w
+#
+# Follow the listener:
+#   kubectl -n arc-runners logs -f -l app.kubernetes.io/component=runner-scale-set-listener
+
+jobs:
+  probe:
+    runs-on: arc-runner-set
+    steps:
+      - name: Where am I?
+        run: |
+          echo "hostname: $(hostname)"
+          echo "user:     $(whoami)"
+          echo "runner:   $RUNNER_NAME"
+          echo "OS/arch:  $RUNNER_OS / $RUNNER_ARCH"
+          echo "pod name: $(hostname)"
+      - name: What node am I on?
+        run: |
+          echo "kernel:   $(uname -a)"
+          # cgroup path reveals the container id and node
+          head -c 200 /proc/self/cgroup || true
+      - name: Prove ephemerality
+        run: |
+          echo "This pod will be deleted the moment this job finishes."
+          echo "Sleeping ${{ inputs.sleep_seconds }}s so you can catch it in kubectl..."
+          sleep "${{ inputs.sleep_seconds }}"
+
+  matrix-scale:
+    # Fan-out: proves ARC scales the EphemeralRunnerSet to multiple pods.
+    runs-on: arc-runner-set
+    strategy:
+      matrix:
+        shard: [1, 2, 3]
+    steps:
+      - name: Shard ${{ matrix.shard }} of 3
+        run: |
+          echo "shard=${{ matrix.shard }} on pod $(hostname)"
+          sleep 5
